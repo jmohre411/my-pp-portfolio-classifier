@@ -2095,23 +2095,7 @@ class PortfolioPerformanceFile:
                         if security.security2 is not None:
                            security.security2.load_holdings()
 
-                        # Insert per-security Industry element into XML (keeps existing behaviour if not found)
-                        try:
-                            sec_elem = self.pp.find(sec_xpath)
-                            if sec_elem is not None:
-                                # remove existing Industry tag(s) if present
-                                for old in sec_elem.findall('Industry'):
-                                    sec_elem.remove(old)
-                                # add new Industry element (value may be empty)
-                                ind_text = security_h.industry if hasattr(security_h, 'industry') else ""
-                                new_ind = ET.Element('Industry')
-                                if ind_text is not None:
-                                    new_ind.text = ind_text
-                                sec_elem.append(new_ind)
-                        except Exception:
-                            # do not fail on errors adding the tag
-                            print(f"  Warning: Could not add <Industry> tag for {security.name}")
-
+                        # Do NOT add <Industry> element to security node; industry is stored internally on holdings
                         self.securities.append(security)
         return self.securities
 
