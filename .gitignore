@@ -1,2 +1,5 @@
 *.py[cod]
 *.sqlite
+pp_data_fetched.csv
+test/Simple_classified.backup-after-open.xml
+test/Simple.backup-after-open.xml
