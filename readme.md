@@ -73,6 +73,10 @@ Steps:
 
 
 ### Autoclassified Sectors
+
+New: The script collects a company's Industry (when available) from Morningstar and stores it internally; it is **not** added as an `<Industry>` element under each security node in the output XML.
+
+
 <img src="docs/img/autoclassified-sectors.png" alt="Autoclassified Sectors" width="600"/>
 
 
