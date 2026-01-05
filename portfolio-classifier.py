@@ -1067,20 +1067,22 @@ taxonomies = {'Asset Type': {'url': 'https://www.emea-api.morningstar.com/ecint/
                              'map-stocks': map_country_1,
                           },
 
-                           
-              'Holding': {   'url': 'https://www.emea-api.morningstar.com/ecint/v1/securities/{isin}',
-                             'viewid' : '{viewid}',
-                             'viewid-stocks' : 'snapshot',
-                             'jsonpath': '$.[0].Portfolios[0].PortfolioHoldings[?(@.ISIN)]',
-                             'jsonpath-stocks': '$.[0].Name',                         
-                             'category': 'SecurityName',
-                             'percent': 'Weighting',
-                             'holdingtype': 'DetailHoldingTypeId',
-                             'url2': 'https://www.emea-api.morningstar.com/sal/sal-service/stock/equityOverview/{secid}/data',
-                             'component2': 'sal-eqsv-overview',
-                             'jsonpath2': '$.securityName',               
-                         },                                
-                          
+              'Industry': { 'url': 'https://www.emea-api.morningstar.com/ecint/v1/securities/{isin}',
+                            'viewid' : 'ITsnapshot',
+                            'viewid-stocks' : 'snapshot',
+                            # try ECINT response first (if available)
+                            'jsonpath': '$.[0].Industry',
+                            # fallback for stock-specific ECINT structure
+                            'jsonpath-stocks': '$.[0].Industry',
+                            'category': 'Type',
+                            'percent': 'Value',
+                            # company profile usually contains industry information
+                            'url2': 'https://www.emea-api.morningstar.com/sal/sal-service/stock/companyProfile/{secid}',
+                            'component2': '',
+                            # try several likely locations in sal/companyProfile response
+                            'jsonpath2': '$..industry'
+                        }
+
         }
 
                     
@@ -1101,6 +1103,7 @@ class Security:
 class SecurityHoldingReport:
     def __init__ (self):
         self.secid=''
+        self.industry = ""  # Industry string for stocks (populated when available)
         pass
 
     
@@ -1539,10 +1542,17 @@ class SecurityHoldingReport:
                 response = resp.json()
                 jsonpath = parse(taxonomy['jsonpath-stocks'])
                 if len(jsonpath.find(response)) > 0:
-                     categories.append(str(jsonpath.find(response)[0].value))
-                     keys.append(str(jsonpath.find(response)[0].value))
+                     val = str(jsonpath.find(response)[0].value)
+                     categories.append(val)
+                     keys.append(val)
                      percentages.append(float (100.0))
                      net_equity = float (1.0)
+                     # if taxonomy is Industry store value for per-stock usage
+                     if grouping_name == 'Industry':
+                         try:
+                             self.industry = val
+                         except Exception:
+                             self.industry = ""
                      
                 unmapped = []
                 if len(taxonomy.get('map-stocks',{})) != 0:
@@ -1589,6 +1599,7 @@ class SecurityHoldingReport:
               response = resp.json()
               jsonpath = parse(taxonomy['jsonpath2'])
               value = jsonpath.find(response)[0].value
+              # keep original value for special handling below
               if grouping_name == 'Asset Type':
                 print(f"    (Name: \"{value}\")")
                 value = "Stocks"
@@ -1600,6 +1611,18 @@ class SecurityHoldingReport:
                 value = value.replace('Korea','SouthKorea')
                 value = value.replace('Czechia','CzechRepublic')
                 value = value.replace('RussianFederation','Russia')
+
+              # If this is Industry, store it on the holdings for later use in security element
+              if grouping_name == 'Industry':
+                  try:
+                      # value might be nested or object; coerce to string if possible
+                      if value is None:
+                          self.industry = ""
+                      else:
+                          self.industry = str(value)
+                  except Exception:
+                      self.industry = ""
+
               if value is not None:
                if len(taxonomy.get('map2',{})) != 0:
                  if value in taxonomy['map2'].keys():
@@ -2071,6 +2094,24 @@ class PortfolioPerformanceFile:
                     if security_h.secid !='':
                         if security.security2 is not None:
                            security.security2.load_holdings()
+
+                        # Insert per-security Industry element into XML (keeps existing behaviour if not found)
+                        try:
+                            sec_elem = self.pp.find(sec_xpath)
+                            if sec_elem is not None:
+                                # remove existing Industry tag(s) if present
+                                for old in sec_elem.findall('Industry'):
+                                    sec_elem.remove(old)
+                                # add new Industry element (value may be empty)
+                                ind_text = security_h.industry if hasattr(security_h, 'industry') else ""
+                                new_ind = ET.Element('Industry')
+                                if ind_text is not None:
+                                    new_ind.text = ind_text
+                                sec_elem.append(new_ind)
+                        except Exception:
+                            # do not fail on errors adding the tag
+                            print(f"  Warning: Could not add <Industry> tag for {security.name}")
+
                         self.securities.append(security)
         return self.securities
 
