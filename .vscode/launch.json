@@ -5,12 +5,21 @@
     "version": "0.2.0",
     "configurations": [        
         {
-            "name": "Python Debugger: Classifier",
+            "name": "Deb: Classifier Simple",
             "type": "debugpy",
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "program": "portfolio-classifier.py",
-            "args": " -stocks .\\test\\Finanzen.xml .\\test\\Finanzen_classified.xml",
+            "args": " -stocks .\\testData\\Simple.xml .\\testData\\Simple_classified.xml",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Deb: Classifier Finanzen",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "portfolio-classifier.py",
+            "args": " -stocks .\\testData\\Finanzen.xml .\\testData\\Finanzen_classified.xml",
             "console": "integratedTerminal"
         }
     ]
