@@ -1086,7 +1086,7 @@ taxonomies = {'Asset Type': {'url': 'https://www.emea-api.morningstar.com/ecint/
                             # try ECINT response first (if available)
                             'jsonpath': '$.[0].Industry',
                             # fallback for stock-specific ECINT structure
-                            'jsonpath-stocks': '$.[0].Industry',
+                            'jsonpath-stocks': '$.[0].Industry.IndustryName',
                             'category': 'Type',
                             'percent': 'Value',
                             # company profile usually contains industry information
