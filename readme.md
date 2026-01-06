@@ -2,7 +2,6 @@
 
 THIS IS A TEMPORARY BRANCH TO DEVELOP A NEW VERSION USING A DIFFERENT API
 
-(This is a fork)
 _____________________________
 GOALS:
 - ~~Use a better documented API (which is hopefully also more future-proof)~~ done
