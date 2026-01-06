@@ -10,7 +10,7 @@
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "program": "portfolio-classifier.py",
-            "args": " -stocks .\\test\\Simple.xml .\\test\\Simple_classified.xml",
+            "args": " -stocks .\\test\\Finanzen.xml .\\test\\Finanzen_classified.xml",
             "console": "integratedTerminal"
         }
     ]
